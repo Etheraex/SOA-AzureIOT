@@ -7,8 +7,8 @@ namespace SoaSeminarski.Common
     public enum StatusType
     {
         NotSpecified,
-        Happy,
-        Unhappy,
+        Hot,
+        Cold,
         Emergency
 
     }

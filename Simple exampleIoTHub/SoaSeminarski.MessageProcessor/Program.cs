@@ -19,7 +19,7 @@ namespace SoaSeminarski.MessageProcessor
             var processor = new EventProcessorHost(hubName, consumerGroupName, iotHubConnectionString, storageConnectionString, storageContainerName);
             await processor.RegisterEventProcessorAsync<LoggingEventProcessor>();
 
-            Console.WriteLine("Event je startovan");
+            Console.WriteLine("Obrada poruka je startovana.");
             Console.ReadLine();
             await processor.UnregisterEventProcessorAsync();
 

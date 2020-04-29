@@ -15,40 +15,49 @@ namespace SoaSeminarski.BandAgent
 
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello from klijent!");
+           
             var device = DeviceClient.CreateFromConnectionString(DeviceConnectionString);
             await device.OpenAsync();
             var receiveEventsTask = receiveEvents(device);
             await device.SetMethodDefaultHandlerAsync(OtherDeviceMethod, null);
             await device.SetMethodHandlerAsync("showMessage", ShowMessage, null);
-           Console.WriteLine("Konektovan je");
+
+           Console.WriteLine("Prost uredjaj je konektovan!");
             
             await UpdateTwin(device);
 
-            Console.WriteLine("Unesi slovo");
+
+            Console.WriteLine("Unesi jedno od slova");
+            Console.WriteLine("q: Nije specifirano");
+            Console.WriteLine("h- Toplo je ");
+            Console.WriteLine("c- Hladno je ");
+
+
             var random = new Random();
             var quitRequested = false;
 
-            while(!quitRequested)
+            while(true)
             {
-                Console.Write("Action");
+                Console.WriteLine("Akcija? ");
                 var input = Console.ReadKey().KeyChar;
                 Console.WriteLine();
                 var status = StatusType.NotSpecified;
                 var lat = random.Next(0, 100);
                 var lon = random.Next(0, 100);
-                switch (Char.ToLower(input))
-                {
+
+                switch (Char.ToLower(input)) { 
+    
                     case 'q':
                         quitRequested = true;
                         break;
                     case 'h':
-                        status = StatusType.Happy;
+                        status = StatusType.Hot;
                         break;
-                    case 'u':
-                        status = StatusType.Unhappy;
+                    case 'c':
+                        status = StatusType.Cold;
                         break;
                 }
+
                 var tele = new Telemetry
                 {
                     Latitude = lat,
@@ -59,47 +68,26 @@ namespace SoaSeminarski.BandAgent
                 var payload = JsonConvert.SerializeObject(tele);
                 var message = new Message(Encoding.ASCII.GetBytes(payload));
                 await device.SendEventAsync(message);
-                Console.WriteLine("Message sent");
+                Console.WriteLine("Poruka je poslata na cloud.");
             }
-
-            // Console.ReadKey();
-            /*
-             var count = 1;
-             while (true)
-             {
-                 var telemetry = new Telemetry
-                 {
-                     Message = "SLozeni",
-                     StatusCode = count++
-
-                 };
-                 var teleJson = JsonConvert.SerializeObject(telemetry);
-
-                 var message = new Message(Encoding.ASCII.GetBytes(teleJson));
-                 await device.SendEventAsync(message);
-                 Console.WriteLine("Radi petlja");
-                 Thread.Sleep(8000);
-
-             }*/
-
-
         }
+
 
         private static Task<MethodResponse> OtherDeviceMethod(MethodRequest methodRequest, object userContext)
         {
-            Console.WriteLine("Pozvana other mess");
+            Console.WriteLine("Pozvana je metoda koja ne postoji.");
             Console.WriteLine(methodRequest.Name);
             Console.WriteLine(methodRequest.DataAsJson);
-            var responsePayload = Encoding.ASCII.GetBytes("{\"Response\": \"Nema je ova metoda\"}");
+            var responsePayload = Encoding.ASCII.GetBytes("{\"Response\": \"Ova metoda ne postoji.\"}");
             return Task.FromResult(new MethodResponse(responsePayload, 404));
 
         }
 
         private static Task<MethodResponse> ShowMessage(MethodRequest methodRequest, object userContext)
         {
-            Console.WriteLine("Pozvana show mess");
+            Console.WriteLine("Pozvana show message metoda");
             Console.WriteLine(methodRequest.DataAsJson);
-            var responsePayload = Encoding.ASCII.GetBytes("{\"Response\": \"prikazana poruka\"}");
+            var responsePayload = Encoding.ASCII.GetBytes("{\"Response\": \"Poruka je prikazana\"}");
             return Task.FromResult(new MethodResponse(responsePayload, 200));
 
         }
@@ -115,7 +103,7 @@ namespace SoaSeminarski.BandAgent
                 }
                 var messageBody = message.GetBytes();
                 var payload = Encoding.ASCII.GetString(messageBody);
-                Console.WriteLine($"Poruka sa oblaka: '{payload}'");
+                Console.WriteLine($"Poruka sa cloud-a: '{payload}'");
                 await device.CompleteAsync(message);
 
             }
@@ -127,7 +115,7 @@ namespace SoaSeminarski.BandAgent
             twinProperties["connectionType"] = "wi-fi";
             twinProperties["connectionStrength"] = "full";
             await device.UpdateReportedPropertiesAsync(twinProperties);
-            //  Console.WriteLine("Izlazi");
+            
 
         }
     }
